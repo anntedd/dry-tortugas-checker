@@ -5,7 +5,7 @@ import os
 
 URL = "https://www.drytortugas.com/overnight-camping-reservations/"
 TARGET_DAY = "9"
-TEST_MODE = True  # Change to False once everything works
+TEST_MODE = True  # Change to False once ready to send real notifications
 
 # ----------------------
 # Email function
@@ -29,24 +29,30 @@ with sync_playwright() as p:
     page = browser.new_page()
     page.goto(URL, timeout=60000)
 
-    # Wait for the calendar container to fully load
-    page.wait_for_selector("div#ui-datepicker-div", timeout=15000)
+    # Wait a few seconds for the page to fully load
+    page.wait_for_timeout(5000)
 
-    # Take a screenshot after calendar loads
+    # Click the arrival date input to show the calendar
+    page.click("input[name='arrivalDate']")  # adjust if the input name is different
+
+    # Wait for the calendar to appear
+    page.wait_for_selector("div.ui-datepicker-group", timeout=10000)
+
+    # Take a screenshot after the calendar appears
     page.screenshot(path="calendar_debug.png", full_page=True)
     print("Screenshot saved as calendar_debug.png")
 
-    # Update this selector to match the "next month" arrow on the calendar
+    # Next month arrow selector
     arrow_selector = "button.ui-datepicker-next"
 
-    # Click the arrow 6 times to reach April (adjust if needed)
+    # Click the arrow to reach April (adjust number of clicks if needed)
     for _ in range(6):
         page.wait_for_selector(arrow_selector, timeout=10000)
         page.click(arrow_selector)
         page.wait_for_timeout(1000)  # brief pause between clicks
 
-    # Check if the target day exists on the page
-    month_text = page.inner_text("div#ui-datepicker-div")
+    # Check if the target day exists
+    month_text = page.inner_text("div.ui-datepicker-group")
 
     if TEST_MODE:
         send_email("TEST: Dry Tortugas Checker", "Your checker ran successfully!")
