@@ -7,7 +7,9 @@ URL = "https://www.drytortugas.com/overnight-camping-reservations/"
 TARGET_DAY = "9"
 TEST_MODE = True  # Change to False once the test works
 
-# Email sending function
+# ----------------------
+# Email function
+# ----------------------
 def send_email(subject, body):
     msg = EmailMessage()
     msg.set_content(body)
@@ -19,20 +21,29 @@ def send_email(subject, body):
         server.login(os.environ["EMAIL_USER"], os.environ["EMAIL_PASS"])
         server.send_message(msg)
 
-# Main browser logic
+# ----------------------
+# Main Playwright logic
+# ----------------------
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
     page = browser.new_page()
     page.goto(URL, timeout=60000)
-    page.wait_for_timeout(3000)
+    page.wait_for_timeout(8000)  # Wait for JS to load calendar
 
-    # Click the ">" arrow to move the calendar forward 6 times to reach April
+    # Take a screenshot to inspect the calendar and buttons
+    page.screenshot(path="calendar_debug.png", full_page=True)
+    print("Screenshot saved as calendar_debug.png")
+
+    # TODO: Replace this selector with the correct arrow button after inspecting screenshot
+    arrow_selector = "button:has-text('>')"  # placeholder
+
+    # Click the arrow 6 times to reach April
     for _ in range(6):
-        page.wait_for_selector("button.ui-datepicker-next", timeout=60000)
-        page.click("button.ui-datepicker-next")
-        page.wait_for_timeout(2000)  # wait 2 seconds between clicks
+        page.wait_for_selector(arrow_selector, timeout=60000)
+        page.click(arrow_selector)
+        page.wait_for_timeout(2000)
 
-    # Check page text for the target day
+    # Check if the target day exists on the page
     month_text = page.inner_text("body")
 
     if TEST_MODE:
