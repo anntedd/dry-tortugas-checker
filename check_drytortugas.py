@@ -3,7 +3,7 @@ import smtplib
 
 # Get credentials and recipient from environment (GitHub Secrets)
 EMAIL_FROM = os.environ.get('EMAIL_FROM')
-EMAIL_PASSWORD = os.environ.get('EMAIL_PASS')
+EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD')
 EMAIL_TO = os.environ.get('EMAIL_TO')
 
 # Check that everything is set
