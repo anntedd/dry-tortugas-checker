@@ -2,7 +2,7 @@ name: Dry Tortugas Availability Check
 
 on:
   schedule:
-    - cron: '0 14 * * *'  # runs daily at 14:00 UTC
+    - cron: '0 * * * *'  # every hour at minute 0 UTC
   workflow_dispatch:
 
 jobs:
@@ -10,22 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repo
       - uses: actions/checkout@v4
 
-      # 2️⃣ Set up Python
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      # 3️⃣ Install dependencies
       - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip install playwright
           playwright install chromium
 
-      # 4️⃣ Run the Dry Tortugas check script
       - name: Run Dry Tortugas check
         run: python check_drytortugas.py
         env:
