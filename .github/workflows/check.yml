@@ -26,7 +26,7 @@ jobs:
         run: python check_drytortugas.py
 
       - name: Upload screenshot
-        if: always()
+        if: always()  # upload even if previous step fails
         uses: actions/upload-artifact@v4
         with:
           name: calendar_debug
