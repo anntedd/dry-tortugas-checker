@@ -1,12 +1,10 @@
-name: Dry Tortugas Email Checker
+name: Dry Tortugas Email Test
 
 on:
-  schedule:
-    - cron: "*/15 * * * *"  # runs every 15 minutes
   workflow_dispatch:
 
 jobs:
-  run-check:
+  send-email-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,12 +16,11 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: |
-          pip install requests
+        run: pip install requests
 
-      - name: Run checker
-        env:
-          EMAIL_USER: ${{ secrets.EMAIL_USER }}
-          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
-          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+      - name: Run email test
         run: python check_drytortugas.py
+        env:
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
