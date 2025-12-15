@@ -8,6 +8,7 @@ import smtplib
 # ----------------------
 API_URL = "PASTE_THE_API_URL_HERE"  # Replace with the actual XHR/fetch API URL
 TARGET_DATE = "2026-04-09"          # The date you want to monitor
+TEST_MODE = True                     # Set to True to force email for testing
 
 # Email environment variables (set in GitHub Actions)
 EMAIL_USER = os.environ.get("EMAIL_USER")
@@ -41,12 +42,19 @@ def check_availability():
         # Look for the target date
         for day in data:
             if day.get("localDate") == TARGET_DATE:
+                print(f"Data for {TARGET_DATE}: {day}")  # Inspect the JSON
                 is_available = day.get("available", False)
+
+                # Force availability if in test mode
+                if TEST_MODE:
+                    is_available = True
+                    print(f"TEST MODE: Forcing availability for {TARGET_DATE}")
+
                 print(f"{TARGET_DATE} availability: {is_available}")
                 if is_available:
                     send_email(
                         f"Dry Tortugas Available! {TARGET_DATE}",
-                        f"April 9 is now available for booking!"
+                        f"{TARGET_DATE} is now available for booking!"
                     )
                 return
 
