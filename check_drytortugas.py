@@ -5,7 +5,7 @@ import os
 
 URL = "https://www.drytortugas.com/overnight-camping-reservations/"
 TARGET_DAY = "9"
-TEST_MODE = True  # Set to False to send real alerts
+TEST_MODE = True  # Set to False once you want real alerts
 
 # ----------------------
 # Email function
@@ -29,37 +29,37 @@ with sync_playwright() as p:
     page = browser.new_page()
     page.goto(URL, timeout=60000)
 
-    # Wait a few seconds for page JS to render
+    # Wait for page to fully load
     page.wait_for_timeout(5000)
 
-    # Click the arrival date input to show the calendar
-    page.click("input#arrivalDate")  # safer selector for the input
-
-    # Wait for the calendar container to appear
-    page.wait_for_selector("div.ui-datepicker-group", timeout=10000)
-
-    # Take a screenshot after the calendar appears
+    # Take an initial screenshot of the full page (to see headers, inputs, calendar)
     page.screenshot(path="calendar_debug.png", full_page=True)
-    print("Screenshot saved as calendar_debug.png")
+    print("Initial screenshot saved as calendar_debug.png")
 
-    # Arrow button selector for next month
-    arrow_selector = "button.ui-datepicker-next"
+    # Print out all input elements for inspection
+    inputs = page.query_selector_all("input")
+    print("Found input elements:")
+    for i, inp in enumerate(inputs):
+        print(i, inp.get_attribute("id"), inp.get_attribute("name"), inp.get_attribute("placeholder"))
 
-    # Click the arrow multiple times to reach April (adjust number if needed)
-    for _ in range(6):
-        page.wait_for_selector(arrow_selector, timeout=10000)
-        page.click(arrow_selector)
-        page.wait_for_timeout(1000)
+    # Print out all headers for inspection
+    headers = page.query_selector_all("h1, h2, h3, h4, h5, h6")
+    print("Found headers:")
+    for h in headers:
+        print(h.inner_text())
 
-    # Check if the target day exists
-    month_text = page.inner_text("div.ui-datepicker-group")
+    # Stop here for debugging; later you can click the input and arrow once you know the selector
+    # For example:
+    # page.click("input#arrivalDate")
+    # page.wait_for_selector("div.ui-datepicker-group", timeout=10000)
+    # arrow_selector = "button.ui-datepicker-next"
+    # for _ in range(6):
+    #     page.click(arrow_selector)
+    #     page.wait_for_timeout(1000)
+    # month_text = page.inner_text("div.ui-datepicker-group")
+    # if TARGET_DAY in month_text:
+    #     send_email("Dry Tortugas Available!", f"April {TARGET_DAY} is available!")
+    #     print(f"April {TARGET_DAY} is available! Email sent.")
 
-    if TEST_MODE:
-        send_email("TEST: Dry Tortugas Checker", "Your checker ran successfully!")
-        print("Test email sent.")
-    else:
-        if TARGET_DAY in month_text:
-            send_email("Dry Tortugas Available!", f"April {TARGET_DAY} is available!")
-            print(f"April {TARGET_DAY} is available! Email sent.")
-
+    # Close browser
     browser.close()
