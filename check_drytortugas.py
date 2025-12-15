@@ -1,65 +1,64 @@
-from playwright.sync_api import sync_playwright
-import smtplib
-from email.message import EmailMessage
+import requests
 import os
-
-URL = "https://www.drytortugas.com/overnight-camping-reservations/"
-TARGET_DAY = "9"
-TEST_MODE = True  # Set to False to send real alerts
+from email.message import EmailMessage
+import smtplib
 
 # ----------------------
-# Email function
+# CONFIG
+# ----------------------
+API_URL = "PASTE_THE_API_URL_HERE"  # Replace with the actual API endpoint you found
+TARGET_DATE = "2026-04-09"  # The date you want to monitor
+
+# Email environment variables
+EMAIL_USER = os.environ.get("EMAIL_USER")
+EMAIL_PASS = os.environ.get("EMAIL_PASS")
+EMAIL_TO = os.environ.get("EMAIL_TO")
+
+# ----------------------
+# Send email function
 # ----------------------
 def send_email(subject, body):
     msg = EmailMessage()
     msg.set_content(body)
     msg["Subject"] = subject
-    msg["From"] = os.environ["EMAIL_USER"]
-    msg["To"] = os.environ["EMAIL_TO"]
+    msg["From"] = EMAIL_USER
+    msg["To"] = EMAIL_TO
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(os.environ["EMAIL_USER"], os.environ["EMAIL_PASS"])
+        server.login(EMAIL_USER, EMAIL_PASS)
         server.send_message(msg)
+    print("Email sent:", subject)
 
 # ----------------------
-# Main Playwright logic
+# Check availability
 # ----------------------
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True)
-    page = browser.new_page()
+def check_availability():
+    try:
+        response = requests.get(API_URL, timeout=30)
+        response.raise_for_status()
+        data = response.json()
 
-    # Set a larger viewport so calendar renders properly
-    page.set_viewport_size({"width": 1280, "height": 2000})
+        for day in data:
+            if day.get("localDate") == TARGET_DATE:
+                if day.get("available"):
+                    send_email(
+                        f"Dry Tortugas Available! {TARGET_DATE}",
+                        f"April 9 is now available for booking!"
+                    )
+                    return True
+                else:
+                    print(f"{TARGET_DATE} is still not available.")
+                    return False
 
-    page.goto(URL, timeout=60000)
-    page.wait_for_timeout(5000)  # wait for JS
+        print(f"{TARGET_DATE} not found in API response.")
+        return False
 
-    # Click the arrival date input to show the calendar
-    page.click("input#arrivalDate")  # replace with correct selector if different
-    page.wait_for_selector("div.ui-datepicker-group", timeout=10000)
+    except Exception as e:
+        print("Error checking availability:", e)
+        return False
 
-    # Take a screenshot after the calendar appears
-    page.screenshot(path="calendar_debug.png", full_page=True)
-    print("Screenshot saved as calendar_debug.png")
-
-    # Arrow button for next month
-    arrow_selector = "button.ui-datepicker-next"
-
-    # Click the arrow multiple times to reach April (adjust number if needed)
-    for _ in range(6):
-        page.wait_for_selector(arrow_selector, timeout=10000)
-        page.click(arrow_selector)
-        page.wait_for_timeout(1000)
-
-    # Check if the target day exists
-    month_text = page.inner_text("div.ui-datepicker-group")
-
-    if TEST_MODE:
-        send_email("TEST: Dry Tortugas Checker", "Your checker ran successfully!")
-        print("Test email sent.")
-    else:
-        if TARGET_DAY in month_text:
-            send_email("Dry Tortugas Available!", f"April {TARGET_DAY} is available!")
-            print(f"April {TARGET_DAY} is available! Email sent.")
-
-    browser.close()
+# ----------------------
+# MAIN
+# ----------------------
+if __name__ == "__main__":
+    check_availability()
