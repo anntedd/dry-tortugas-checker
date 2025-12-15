@@ -1,8 +1,8 @@
-name: Dry Tortugas Camping Checker
+name: Dry Tortugas Email Checker
 
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "*/15 * * * *"  # every 15 minutes
   workflow_dispatch:
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install playwright twilio
+          pip install playwright
           playwright install chromium
 
       - name: Run checker
