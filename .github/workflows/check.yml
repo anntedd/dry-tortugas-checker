@@ -1,6 +1,8 @@
-name: Dry Tortugas Test
+name: Dry Tortugas Availability Check
 
 on:
+  schedule:
+    - cron: '0 14 * * *'  # runs daily at 14:00 UTC
   workflow_dispatch:
 
 jobs:
@@ -12,35 +14,19 @@ jobs:
       - uses: actions/checkout@v4
 
       # 2️⃣ Set up Python
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       # 3️⃣ Install dependencies
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install selenium
+          pip install playwright
+          playwright install chromium
 
-      # 4️⃣ Install Chrome
-      - name: Install Google Chrome
-        run: |
-          sudo apt update
-          sudo apt install -y google-chrome-stable
-
-      # 5️⃣ Install matching ChromeDriver
-      - name: Install ChromeDriver
-        run: |
-          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
-          CHROMEDRIVER_VERSION=$(curl -sS "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
-          wget -N "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip" -P ~/
-          unzip ~/chromedriver_linux64.zip -d ~/
-          sudo mv -f ~/chromedriver /usr/local/bin/chromedriver
-          sudo chmod +x /usr/local/bin/chromedriver
-
-      # 6️⃣ Run your Python script
-      - name: Run Dry Tortugas test script
+      # 4️⃣ Run the Dry Tortugas check script
+      - name: Run Dry Tortugas check
         run: python check_drytortugas.py
         env:
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
