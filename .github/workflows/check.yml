@@ -8,11 +8,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout repository
+      # Step 1: Checkout repo
       - uses: actions/checkout@v4
 
-      # Step 2: Setup Python
-      - name: Setup Python
+      # Step 2: Set up Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -27,27 +27,26 @@ jobs:
       - name: Install Google Chrome
         run: |
           sudo apt update
-          sudo apt install -y wget unzip xvfb libxi6 libgconf-2-4
+          sudo apt install -y wget unzip xvfb libxi6
           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
           sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt -f install -y
 
-      # Step 5: Install matching ChromeDriver manually
+      # Step 5: Install ChromeDriver matching Chrome version
       - name: Install ChromeDriver
         run: |
           CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
-          echo "Chrome version: $CHROME_VERSION"
-          CHROMEDRIVER_VERSION=$(wget -qO- https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION)
-          echo "ChromeDriver version: $CHROMEDRIVER_VERSION"
-          wget https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip
-          unzip chromedriver_linux64.zip
-          sudo mv chromedriver /usr/local/bin/
+          echo "Chrome version detected: $CHROME_VERSION"
+          LATEST_DRIVER=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
+          echo "Downloading ChromeDriver version: $LATEST_DRIVER"
+          wget -N "https://chromedriver.storage.googleapis.com/$LATEST_DRIVER/chromedriver_linux64.zip" -P ~/
+          unzip -o ~/chromedriver_linux64.zip -d ~/
+          sudo mv -f ~/chromedriver /usr/local/bin/chromedriver
           sudo chmod +x /usr/local/bin/chromedriver
 
       # Step 6: Run Selenium script
-      - name: Run Dry Tortugas script
+      - name: Run Dry Tortugas check
         env:
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-        run: |
-          python check_drytortugas.py
+        run: python check_drytortugas.py
