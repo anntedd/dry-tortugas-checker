@@ -1,28 +1,32 @@
-name: Dry Tortugas Email Test
+name: Dry Tortugas Email Check
 
 on:
-  workflow_dispatch:
+  schedule:
+    # Runs every day at 8:00 AM UTC (adjust as needed)
+    - cron: '0 8 * * *'
+  workflow_dispatch: # allows manual trigger
 
 jobs:
-  send-email-test:
+  send_email:
     runs-on: ubuntu-latest
-
+    env:
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      EMAIL_TO: ${{ secrets.EMAIL_TO }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install requests
+          python -m pip install --upgrade pip
+          # Add any required packages here, e.g.
+          # pip install requests
 
-      - name: Run email test
+      - name: Run Dry Tortugas script
         run: python check_drytortugas.py
-        env:
-          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-          EMAIL_TO: ${{ secrets.EMAIL_TO }}
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
