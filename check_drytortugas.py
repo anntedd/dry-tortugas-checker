@@ -5,7 +5,7 @@ import os
 
 URL = "https://www.drytortugas.com/overnight-camping-reservations/"
 TARGET_DAY = "9"
-TEST_MODE = True  # Change to False once the test works
+TEST_MODE = True  # Change to False once everything works
 
 # ----------------------
 # Email function
@@ -28,23 +28,25 @@ with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
     page = browser.new_page()
     page.goto(URL, timeout=60000)
-    page.wait_for_timeout(8000)  # Wait for JS to load calendar
 
-    # Take a screenshot for debugging and artifact upload
+    # Wait for the calendar container to fully load
+    page.wait_for_selector("div#ui-datepicker-div", timeout=15000)
+
+    # Take a screenshot after calendar loads
     page.screenshot(path="calendar_debug.png", full_page=True)
     print("Screenshot saved as calendar_debug.png")
 
-    # TODO: Replace this selector with the correct arrow button after inspecting screenshot
-    arrow_selector = "button:has-text('>')"  # placeholder
+    # Update this selector to match the "next month" arrow on the calendar
+    arrow_selector = "button.ui-datepicker-next"
 
-    # Click the arrow 6 times to reach April
+    # Click the arrow 6 times to reach April (adjust if needed)
     for _ in range(6):
-        page.wait_for_selector(arrow_selector, timeout=60000)
+        page.wait_for_selector(arrow_selector, timeout=10000)
         page.click(arrow_selector)
-        page.wait_for_timeout(2000)
+        page.wait_for_timeout(1000)  # brief pause between clicks
 
     # Check if the target day exists on the page
-    month_text = page.inner_text("body")
+    month_text = page.inner_text("div#ui-datepicker-div")
 
     if TEST_MODE:
         send_email("TEST: Dry Tortugas Checker", "Your checker ran successfully!")
