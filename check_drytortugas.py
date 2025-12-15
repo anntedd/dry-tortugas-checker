@@ -6,7 +6,7 @@ import smtplib
 # ----------------------
 # CONFIG
 # ----------------------
-API_URL = "https://checkout-api.ventrata.com/octo/availability/calendar?productId=5a39dbd6-98c1-4170-a4e7-4b4292632a99&optionId=435606fd-0077-44ba-b9d4-a383004ac6aa&rentalDurationId=&localDateStart=2025-12-01&localDateEnd=2025-12-31&units%5B0%5D%5Bid%5D=unit_52e53817-b7d8-4d96-b3d8-b1aa1fef77ec&units%5B0%5D%5Bquantity%5D=1&units%5B0%5D%5Bextras%5D%5B%5D=&currency=USD&extras%5B%5D="
+API_URL = "https://checkout-api.ventrata.com/octo/availability/calendar?productId=5a39dbd6-98c1-4170-a4e7-4b4292632a99&optionId=435606fd-0077-44ba-b9d4-a383004ac6aa&localDateStart=2025-12-01&localDateEnd=2025-12-31&units%5B0%5D%5Bid%5D=unit_52e53817-b7d8-4d96-b3d8-b1aa1fef77ec&units%5B0%5D%5Bquantity%5D=1&currency=USD"
 TARGET_DATE = "2026-04-09"  # change to the date you want
 TEST_MODE = True  # set to False to only send email when date is available
 
