@@ -1,10 +1,13 @@
 import os
 import smtplib
 from email.mime.text import MIMEText
-import requests
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+import time
 
 # ===========================
-# Email setup (works with your GitHub secrets + App Password)
+# Email setup
 # ===========================
 EMAIL_FROM = os.environ["EMAIL_FROM"]
 EMAIL_TO = os.environ["EMAIL_TO"]
@@ -25,32 +28,37 @@ def send_email(subject, body):
 # ===========================
 # Dry Tortugas availability check
 # ===========================
-# Example API endpoint the site uses (inspect via browser Network tab):
-API_URL = "https://www.drytortugas.com/overnight-camping-reservations/api/reservations"
+DRY_TORT_URL = "https://www.drytortugas.com/overnight-camping-reservations/"
 
-# Request payload — checking April 9 for 1 night
-payload = {
-    "month": 4,       # April
-    "year": 2026,     # adjust as needed
-    "nights": 1
-}
+# Target date
+TARGET_DATE = "2026-04-09"
 
 try:
-    response = requests.get(API_URL, params=payload)
-    response.raise_for_status()
-    data = response.json()
+    # Setup headless Chrome
+    options = Options()
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
 
-    # Inspect data structure — assuming a list of available dates
-    # (adjust key names if the API uses different names)
-    available_dates = [entry["date"] for entry in data.get("availability", [])]
+    driver = webdriver.Chrome(options=options)
+    driver.get(DRY_TORT_URL)
+    
+    # Wait for page / JavaScript to load (adjust if needed)
+    time.sleep(5)
 
-    if "2026-04-09" in available_dates:
+    # The site loads availability in a div with class 'availability' or similar
+    # Adjust selector based on what you see in the browser DevTools
+    availability_text = driver.find_element(By.TAG_NAME, "body").text
+
+    if TARGET_DATE in availability_text:
         send_email(
-            "Dry Tortugas Alert: April 9 Available!",
-            "✅ April 9 for 1 night is now available. Go book it!"
+            f"Dry Tortugas Alert: {TARGET_DATE} Available!",
+            f"✅ {TARGET_DATE} for 1 night is now available. Go book it!"
         )
     else:
-        print("April 9 is not available yet.")
+        print(f"{TARGET_DATE} is not available yet.")
+
+    driver.quit()
 
 except Exception as e:
     send_email(
