@@ -4,6 +4,8 @@ from email.mime.text import MIMEText
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 
 # ===========================
@@ -29,9 +31,8 @@ def send_email(subject, body):
 # Dry Tortugas availability check
 # ===========================
 DRY_TORT_URL = "https://www.drytortugas.com/overnight-camping-reservations/"
-
-# Target date
 TARGET_DATE = "2026-04-09"
+TARGET_MONTH = "April 2026"
 
 try:
     # Setup headless Chrome
@@ -42,15 +43,27 @@ try:
 
     driver = webdriver.Chrome(options=options)
     driver.get(DRY_TORT_URL)
-    
-    # Wait for page / JavaScript to load (adjust if needed)
-    time.sleep(5)
 
-    # The site loads availability in a div with class 'availability' or similar
-    # Adjust selector based on what you see in the browser DevTools
-    availability_text = driver.find_element(By.TAG_NAME, "body").text
+    wait = WebDriverWait(driver, 15)
 
-    if TARGET_DATE in availability_text:
+    # Wait for the calendar to appear
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div[data-cy='calendar']")))
+
+    # Navigate to the correct month
+    month_header = driver.find_element(By.CSS_SELECTOR, "div[data-cy='month-info']").text
+    while month_header != TARGET_MONTH:
+        driver.find_element(By.CSS_SELECTOR, "button[data-cy='month-navigation-right']").click()
+        time.sleep(1)  # small wait for animation
+        month_header = driver.find_element(By.CSS_SELECTOR, "div[data-cy='month-info']").text
+
+    # Collect available days (buttons that are not disabled)
+    available_dates = []
+    for btn in driver.find_elements(By.CSS_SELECTOR, "button[data-cy='calendar-day']:not([disabled])"):
+        day_number = btn.find_element(By.CSS_SELECTOR, "span[data-cy='day-number']").text
+        # Format date as YYYY-MM-DD
+        available_dates.append(f"2026-04-{int(day_number):02d}")
+
+    if TARGET_DATE in available_dates:
         send_email(
             f"Dry Tortugas Alert: {TARGET_DATE} Available!",
             f"✅ {TARGET_DATE} for 1 night is now available. Go book it!"
