@@ -30,7 +30,7 @@ with sync_playwright() as p:
     page.goto(URL, timeout=60000)
     page.wait_for_timeout(8000)  # Wait for JS to load calendar
 
-    # Take a screenshot to inspect the calendar and buttons
+    # Take a screenshot for debugging and artifact upload
     page.screenshot(path="calendar_debug.png", full_page=True)
     print("Screenshot saved as calendar_debug.png")
 
