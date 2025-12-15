@@ -24,3 +24,9 @@ jobs:
 
       - name: Run checker
         run: python check_drytortugas.py
+
+      - name: Upload screenshot
+        uses: actions/upload-artifact@v3
+        with:
+          name: calendar_debug
+          path: calendar_debug.png
