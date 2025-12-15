@@ -1,19 +1,23 @@
-import smtplib
-from email.mime.text import MIMEText
 import os
+import smtplib
 
-EMAIL_FROM = os.environ["EMAIL_FROM"]
-EMAIL_TO = os.environ["EMAIL_TO"]
-EMAIL_PASSWORD = os.environ["EMAIL_PASSWORD"]
+# Get credentials and recipient from environment (GitHub Secrets)
+EMAIL_FROM = os.environ.get('EMAIL_FROM')
+EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD')
+EMAIL_TO = os.environ.get('EMAIL_TO')
 
-msg = MIMEText("✅ GitHub Actions email test successful.")
-msg["Subject"] = "Dry Tortugas Email Test"
-msg["From"] = EMAIL_FROM
-msg["To"] = EMAIL_TO
+# Check that everything is set
+if not EMAIL_FROM or not EMAIL_PASSWORD or not EMAIL_TO:
+    raise ValueError("One or more email environment variables are missing!")
 
-with smtplib.SMTP("smtp.gmail.com", 587) as server:
-    server.starttls()
+# Connect to Gmail SMTP and send email
+with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
     server.login(EMAIL_FROM, EMAIL_PASSWORD)
-    server.send_message(msg)
+    
+    subject = "Test Email"
+    body = "This is a test email from your DryT script."
+    msg = f"Subject: {subject}\n\n{body}"
+    
+    server.sendmail(EMAIL_FROM, EMAIL_TO, msg)
 
 print("Email sent successfully!")
