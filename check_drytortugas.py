@@ -29,12 +29,9 @@ def send_email(subject, body):
 # Dry Tortugas availability check
 # ===========================
 DRY_TORT_URL = "https://www.drytortugas.com/overnight-camping-reservations/"
-
-# Target date
 TARGET_DATE = "2026-04-09"
 
 try:
-    # Setup headless Chrome
     options = Options()
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
@@ -43,21 +40,19 @@ try:
     driver = webdriver.Chrome(options=options)
     driver.get(DRY_TORT_URL)
     
-    # Wait for page / JavaScript to load
-    time.sleep(5)
+    time.sleep(5)  # wait for JS to render
 
-    # Grab the full page text
-    availability_text = driver.find_element(By.TAG_NAME, "body").text
+    body_text = driver.find_element(By.TAG_NAME, "body").text
 
-    # ===== QUICK TEST TWEAK =====
-    if TARGET_DATE not in availability_text:
-        send_email(
-            f"Dry Tortugas Test: {TARGET_DATE} Not Found",
-            f"⚠️ {TARGET_DATE} is NOT available — this is a test email to confirm email sending works!"
-        )
+    # ---- TWEAK: Always send an email ----
+    if TARGET_DATE in body_text:
+        subject = f"Dry Tortugas Alert: {TARGET_DATE} Available!"
+        body = f"✅ {TARGET_DATE} for 1 night is now available. Go book it!"
     else:
-        print(f"{TARGET_DATE} is available (or found in page).")
+        subject = f"Dry Tortugas Alert: {TARGET_DATE} NOT Available (TEST)"
+        body = f"❌ {TARGET_DATE} is not available yet. This is a test email."
 
+    send_email(subject, body)
     driver.quit()
 
 except Exception as e:
