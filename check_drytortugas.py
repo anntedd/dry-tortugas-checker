@@ -36,13 +36,12 @@ try:
 
         body_text = page.inner_text("body")
 
-        # ---- ONLY CHANGE: always send an email ----
         if TARGET_DATE in body_text:
             subject = f"Dry Tortugas Alert: {TARGET_DATE} Available!"
             body = f"✅ {TARGET_DATE} is now available for booking. Go check it!"
         else:
             subject = f"Dry Tortugas Alert: {TARGET_DATE} NOT Available"
-            body = f"❌ {TARGET_DATE} is not available yet. This is a test email."
+            body = f"❌ {TARGET_DATE} is not available yet."
 
         send_email(subject, body)
         browser.close()
