@@ -1,48 +1,85 @@
+# check_drytortugas.py
 import requests
-import os
-from email.message import EmailMessage
 import smtplib
+from email.message import EmailMessage
+from playwright.sync_api import sync_playwright
+import time
 
 # ----------------------
 # CONFIG
 # ----------------------
-API_URL = "https://checkout-api.ventrata.com/octo/availability/calendar?productId=5a39dbd6-98c1-4170-a4e7-4b4292632a99&optionId=435606fd-0077-44ba-b9d4-a383004ac6aa&localDateStart=2025-12-01&localDateEnd=2025-12-31&units%5B0%5D%5Bid%5D=unit_52e53817-b7d8-4d96-b3d8-b1aa1fef77ec&units%5B0%5D%5Bquantity%5D=1&currency=USD"
-TARGET_DATE = "2026-04-09"  # change to the date you want
-TEST_MODE = True  # set to False to only send email when date is available
+EMAIL_USER = "your_email@gmail.com"      # your email
+EMAIL_PASS = "your_app_password"         # app password if using Gmail
+TO_EMAIL = "your_email@gmail.com"        # can be same as your email
+DATE_TO_CHECK = "2025-12-15"             # change to the date you want
+CHECK_URL = "https://www.drytortugas.com/overnight-camping-reservations/"  # main page
 
 # ----------------------
-# Email function
+# STEP 1: Load page and select options
 # ----------------------
-def send_email(subject, body):
-    msg = EmailMessage()
-    msg.set_content(body)
-    msg["Subject"] = subject
-    msg["From"] = os.environ["EMAIL_USER"]
-    msg["To"] = os.environ["EMAIL_TO"]
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=False)  # headless=False so you can see it
+    page = browser.new_page()
+    page.goto(CHECK_URL)
+    
+    # Pause so you can inspect elements and find real selectors
+    page.pause()
+    
+    # ---- CLICK "1 Night" option ----
+    page.click("INSERT_SELECTOR_FOR_1_NIGHT_OPTION")
+    
+    # ---- CLICK DATE INPUT ----
+    page.click("INSERT_SELECTOR_FOR_DATE_INPUT")
+    
+    # ---- CLICK NEXT MONTH ARROW until correct month is visible ----
+    # You can loop here until you see your month in the calendar
+    # Example:
+    # while not page.is_visible("INSERT_SELECTOR_FOR_DESIRED_MONTH_HEADER"):
+    #     page.click("INSERT_SELECTOR_FOR_NEXT_MONTH_ARROW")
+    
+    # ---- WAIT for calendar / availability to load ----
+    page.wait_for_selector("INSERT_SELECTOR_FOR_CALENDAR_LOADED")
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(os.environ["EMAIL_USER"], os.environ["EMAIL_PASS"])
-        server.send_message(msg)
+    # ---- TAKE SCREENSHOT FOR DEBUG ----
+    page.screenshot(path="calendar_debug.png")
 
 # ----------------------
-# Fetch API and check availability
+# STEP 2: Fetch availability via API (optional)
 # ----------------------
-response = requests.get(API_URL)
-response.raise_for_status()  # fail if API request fails
-data = response.json()
+# You can optionally fetch the JSON data if you know the API URL
+API_URL = "INSERT_API_URL_FOR_DATE_CHECK"  # the URL you found in network tab
+try:
+    response = requests.get(API_URL)
+    response.raise_for_status()
+    data = response.json()
+except Exception as e:
+    print("API request failed:", e)
+    data = []
 
-# Find the target date in the JSON
-found = False
+# ----------------------
+# STEP 3: Check if your date is available
+# ----------------------
+date_available = False
 for day in data:
-    if day.get("localDate") == TARGET_DATE:
-        found = True
-        if day.get("available", False):
-            send_email("Dry Tortugas Camping Available!", f"{TARGET_DATE} is available!")
-            print(f"{TARGET_DATE} is available! Email sent.")
-        else:
-            print(f"{TARGET_DATE} is not available yet.")
+    if day.get("localDate") == DATE_TO_CHECK and day.get("available"):
+        date_available = True
         break
 
-if TEST_MODE:
-    send_email("TEST: Dry Tortugas Checker", f"Checker ran successfully. Found date? {found}")
-    print("Test email sent.")
+# ----------------------
+# STEP 4: Send email if available
+# ----------------------
+if date_available:
+    msg = EmailMessage()
+    msg.set_content(f"The date {DATE_TO_CHECK} is available!")
+    msg["Subject"] = f"Dry Tortugas Opening: {DATE_TO_CHECK}"
+    msg["From"] = EMAIL_USER
+    msg["To"] = TO_EMAIL
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+        smtp.login(EMAIL_USER, EMAIL_PASS)
+        smtp.send_message(msg)
+    print("Email sent!")
+else:
+    print(f"{DATE_TO_CHECK} is not available.")
+
+browser.close()
