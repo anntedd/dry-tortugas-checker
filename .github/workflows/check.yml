@@ -2,7 +2,7 @@ name: Dry Tortugas Email Checker
 
 on:
   schedule:
-    - cron: "*/15 * * * *"  # every 15 minutes
+    - cron: "*/15 * * * *"  # runs every 15 minutes
   workflow_dispatch:
 
 jobs:
@@ -22,4 +22,8 @@ jobs:
           pip install requests
 
       - name: Run checker
+        env:
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: python check_drytortugas.py
