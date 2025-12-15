@@ -16,10 +16,10 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install --upgrade pip
 
       - name: Run email test
-        run: python check_drytortugas.py
+        run: python check_email.py
         env:
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
