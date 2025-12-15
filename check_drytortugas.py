@@ -6,10 +6,10 @@ import smtplib
 # ----------------------
 # CONFIG
 # ----------------------
-API_URL = "PASTE_THE_API_URL_HERE"  # Replace with the actual API endpoint you found
-TARGET_DATE = "2026-04-09"  # The date you want to monitor
+API_URL = "PASTE_THE_API_URL_HERE"  # Replace with the actual XHR/fetch API URL
+TARGET_DATE = "2026-04-09"          # The date you want to monitor
 
-# Email environment variables
+# Email environment variables (set in GitHub Actions)
 EMAIL_USER = os.environ.get("EMAIL_USER")
 EMAIL_PASS = os.environ.get("EMAIL_PASS")
 EMAIL_TO = os.environ.get("EMAIL_TO")
@@ -38,24 +38,22 @@ def check_availability():
         response.raise_for_status()
         data = response.json()
 
+        # Look for the target date
         for day in data:
             if day.get("localDate") == TARGET_DATE:
-                if day.get("available"):
+                is_available = day.get("available", False)
+                print(f"{TARGET_DATE} availability: {is_available}")
+                if is_available:
                     send_email(
                         f"Dry Tortugas Available! {TARGET_DATE}",
                         f"April 9 is now available for booking!"
                     )
-                    return True
-                else:
-                    print(f"{TARGET_DATE} is still not available.")
-                    return False
+                return
 
         print(f"{TARGET_DATE} not found in API response.")
-        return False
 
     except Exception as e:
         print("Error checking availability:", e)
-        return False
 
 # ----------------------
 # MAIN
