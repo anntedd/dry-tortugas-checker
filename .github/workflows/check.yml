@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASS }}
       EMAIL_TO: ${{ secrets.EMAIL_TO }}
     steps:
       - name: Checkout repository
