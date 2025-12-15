@@ -1,10 +1,7 @@
 import os
 import smtplib
 from email.mime.text import MIMEText
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-import time
+from playwright.sync_api import sync_playwright
 
 # ===========================
 # Email setup
@@ -18,7 +15,6 @@ def send_email(subject, body):
     msg["Subject"] = subject
     msg["From"] = EMAIL_FROM
     msg["To"] = EMAIL_TO
-
     with smtplib.SMTP("smtp.gmail.com", 587) as server:
         server.starttls()
         server.login(EMAIL_FROM, EMAIL_PASSWORD)
@@ -28,36 +24,32 @@ def send_email(subject, body):
 # ===========================
 # Dry Tortugas availability check
 # ===========================
-DRY_TORT_URL = "https://www.drytortugas.com/overnight-camping-reservations/"
 TARGET_DATE = "2026-04-09"
+URL = "https://www.drytortugas.com/overnight-camping-reservations/"
 
 try:
-    options = Options()
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(URL)
+        page.wait_for_timeout(5000)  # wait for JS to render
 
-    driver = webdriver.Chrome(options=options)
-    driver.get(DRY_TORT_URL)
-    
-    time.sleep(5)  # wait for JS to render
+        body_text = page.inner_text("body")
 
-    body_text = driver.find_element(By.TAG_NAME, "body").text
+        # ---- ONLY CHANGE: always send an email ----
+        if TARGET_DATE in body_text:
+            subject = f"Dry Tortugas Alert: {TARGET_DATE} Available!"
+            body = f"✅ {TARGET_DATE} is now available for booking. Go check it!"
+        else:
+            subject = f"Dry Tortugas Alert: {TARGET_DATE} NOT Available"
+            body = f"❌ {TARGET_DATE} is not available yet. This is a test email."
 
-    # ---- TWEAK: Always send an email ----
-    if TARGET_DATE in body_text:
-        subject = f"Dry Tortugas Alert: {TARGET_DATE} Available!"
-        body = f"✅ {TARGET_DATE} for 1 night is now available. Go book it!"
-    else:
-        subject = f"Dry Tortugas Alert: {TARGET_DATE} NOT Available (TEST)"
-        body = f"❌ {TARGET_DATE} is not available yet. This is a test email."
-
-    send_email(subject, body)
-    driver.quit()
+        send_email(subject, body)
+        browser.close()
 
 except Exception as e:
     send_email(
         "Dry Tortugas Script Error",
-        f"Something went wrong when checking availability:\n{e}"
+        f"Something went wrong:\n{e}"
     )
     raise
