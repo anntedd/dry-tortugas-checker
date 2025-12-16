@@ -2,7 +2,8 @@ name: Dry Tortugas Availability Check
 
 on:
   schedule:
-    - cron: '0 * * * *'  # every hour at minute 0 UTC
+    # Pick a random minute for the hour, e.g., 17
+    - cron: '17 * * * *'   # every hour at minute 17 UTC
   workflow_dispatch:
 
 jobs:
