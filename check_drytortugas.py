@@ -2,17 +2,7 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from playwright.sync_api import sync_playwright
-import random
-import time
 from datetime import datetime
-
-# ===========================
-# Random sleep for hourly randomness
-# ===========================
-# Sleep 0–59 minutes at the start
-sleep_seconds = random.randint(0, 59 * 60)
-print(f"Sleeping {sleep_seconds // 60} minutes and {sleep_seconds % 60} seconds before checking...")
-time.sleep(sleep_seconds)
 
 # ===========================
 # Email setup
@@ -38,35 +28,31 @@ def send_email(subject, body):
 TARGET_DATE = "2026-04-09"
 URL = "https://www.drytortugas.com/overnight-camping-reservations/"
 
-current_hour_cst = (datetime.utcnow().hour - 6) % 24
-if 6 <= current_hour_cst <= 22:  # 6AM–10PM CST
-    try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page()
-            page.goto(URL)
-            page.wait_for_timeout(5000)  # wait for JS to render
+try:
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(URL)
+        page.wait_for_timeout(5000)  # wait for JS to render
 
-            body_text = page.inner_text("body")
+        body_text = page.inner_text("body")
 
-            if TARGET_DATE in body_text:
-                send_email(
-                    f"Dry Tortugas Alert: {TARGET_DATE} Available!",
-                    f"✅ {TARGET_DATE} is now available for booking. Go check it!"
-                )
-            else:
-                send_email(
-                    f"Dry Tortugas Update: {TARGET_DATE} Not Available",
-                    f"❌ {TARGET_DATE} is not available yet."
-                )
+        if TARGET_DATE in body_text:
+            send_email(
+                f"Dry Tortugas Alert: {TARGET_DATE} Available!",
+                f"✅ {TARGET_DATE} is now available for booking. Go check it!"
+            )
+        else:
+            send_email(
+                f"Dry Tortugas Update: {TARGET_DATE} Not Available",
+                f"❌ {TARGET_DATE} is not available yet."
+            )
 
-            browser.close()
+        browser.close()
 
-    except Exception as e:
-        send_email(
-            "Dry Tortugas Script Error",
-            f"Something went wrong:\n{e}"
-        )
-        raise
-else:
-    print(f"Current time {current_hour_cst} CST is outside 6AM–10PM. Skipping check.")
+except Exception as e:
+    send_email(
+        "Dry Tortugas Script Error",
+        f"Something went wrong:\n{e}"
+    )
+    raise
