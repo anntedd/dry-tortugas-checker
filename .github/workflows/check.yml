@@ -25,6 +25,7 @@ jobs:
       - name: Run Dry Tortugas check
         run: python check_drytortugas.py
         env:
+        
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
