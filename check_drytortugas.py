@@ -3,6 +3,7 @@ import smtplib
 from email.mime.text import MIMEText
 from playwright.sync_api import sync_playwright
 from datetime import datetime
+import time
 
 # ===========================
 # Email setup
@@ -60,7 +61,13 @@ def check_availability():
             f"❌ Dry Tortugas Script Error ({now_str})",
             str(e)
         )
-        raise
+        print(f"Error: {e}")
 
+# ===========================
+# Main loop: run every hour
+# ===========================
 if __name__ == "__main__":
-    check_availability()
+    while True:
+        check_availability()
+        print("Sleeping for 1 hour...")
+        time.sleep(3600)  # sleep for 1 hour
