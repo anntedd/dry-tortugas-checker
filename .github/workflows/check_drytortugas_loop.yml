@@ -2,7 +2,7 @@ name: Dry Tortugas Hourly Check
 
 on:
   schedule:
-    - cron: '26 * * * *'  # runs at minute 13 every hour UTC
+    - cron: '27 3 * * *'   # runs at minute 13 every hour UTC
   workflow_dispatch:
 
 jobs:
