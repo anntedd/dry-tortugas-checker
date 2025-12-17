@@ -2,7 +2,7 @@ name: Dry Tortugas Hourly Check
 
 on:
   schedule:
-    - cron: '13 * * * *'   # once per hour, minute 13
+    - cron: '*/10 * * * *'# once per hour, minute 13
   workflow_dispatch:
 
 jobs:
