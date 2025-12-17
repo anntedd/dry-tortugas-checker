@@ -1,8 +1,9 @@
 name: Dry Tortugas Hourly Check
+# Trigger refresh
 
 on:
   schedule:
-    - cron: '27 3 * * *'   # runs at minute 13 every hour UTC
+    - cron: '37 3 * * *'   # runs at minute 13 every hour UTC
   workflow_dispatch:
 
 jobs:
