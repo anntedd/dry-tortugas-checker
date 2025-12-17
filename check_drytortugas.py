@@ -1,9 +1,8 @@
 import os
 import smtplib
+import requests
 from email.mime.text import MIMEText
-from playwright.sync_api import sync_playwright
 from datetime import datetime
-import time
 
 # ===========================
 # Email setup
@@ -36,25 +35,20 @@ def check_availability():
     print(f"Checking Dry Tortugas availability at {now_str}")
 
     try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page()
-            page.goto(URL, timeout=60000)
-            page.wait_for_timeout(5000)
-            body_text = page.inner_text("body")
+        response = requests.get(URL, timeout=30)
+        response.raise_for_status()
+        body_text = response.text
 
-            if TARGET_DATE in body_text:
-                send_email(
-                    f"🔥 Dry Tortugas AVAILABLE: {TARGET_DATE} ({now_str})",
-                    f"✅ {TARGET_DATE} is now available.\nChecked at {now_str}\n\n{URL}"
-                )
-            else:
-                send_email(
-                    f"Dry Tortugas Check OK ({now_str})",
-                    f"❌ {TARGET_DATE} not available yet.\nChecked at {now_str}"
-                )
-
-            browser.close()
+        if TARGET_DATE in body_text:
+            send_email(
+                f"🔥 Dry Tortugas AVAILABLE: {TARGET_DATE} ({now_str})",
+                f"✅ {TARGET_DATE} is now available.\nChecked at {now_str}\n\n{URL}"
+            )
+        else:
+            send_email(
+                f"Dry Tortugas Check OK ({now_str})",
+                f"❌ {TARGET_DATE} not available yet.\nChecked at {now_str}"
+            )
 
     except Exception as e:
         send_email(
@@ -63,11 +57,5 @@ def check_availability():
         )
         print(f"Error: {e}")
 
-# ===========================
-# Main loop: run every hour
-# ===========================
 if __name__ == "__main__":
-    while True:
-        check_availability()
-        print("Sleeping for 1 hour...")
-        time.sleep(3600)  # sleep for 1 hour
+    check_availability()
