@@ -41,7 +41,7 @@ HEADERS = {
 }
 
 def check_availability():
-    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S CST")
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
     print(f"Checking Dry Tortugas availability at {now_str}")
 
     try:
