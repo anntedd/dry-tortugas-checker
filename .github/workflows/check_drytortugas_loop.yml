@@ -1,9 +1,25 @@
-name: Dry Tortugas Hourly Check
-# Trigger refresh
+name: Dry Tortugas Check (CST Schedule)
 
 on:
   schedule:
-    - cron: '37 3 * * *'   # runs at minute 13 every hour UTC
+    - cron: '6 12 * * *'
+    - cron: '15 13 * * *'
+    - cron: '26 14 * * *'
+    - cron: '4 15 * * *'
+    - cron: '16 16 * * *'
+    - cron: '31 17 * * *'
+    - cron: '43 18 * * *'
+    - cron: '32 19 * * *'
+    - cron: '36 20 * * *'
+    - cron: '47 21 * * *'
+    - cron: '44 22 * * *'
+    - cron: '32 23 * * *'
+    - cron: '56 0 * * *'
+    - cron: '44 1 * * *'
+    - cron: '22 2 * * *'
+    - cron: '11 3 * * *'
+    - cron: '14 4 * * *'
+    - cron: '1 5 * * *'
   workflow_dispatch:
 
 jobs:
@@ -18,7 +34,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install --upgrade pip requests
+        run: pip install --upgrade pip requests pytz
 
       - name: Run Dry Tortugas check
         run: python check_drytortugas.py
